@@ -1,0 +1,144 @@
+
+.data
+#CPTS 260 HW 4 PROBLEM 1 , Jocelyn Strmec
+welc:       .asciiz "Welcome to SPIM Calculator 1.0!\n"
+p_int:      .asciiz "\nPlease give an integer: "
+p_op:       .asciiz "\nPlease give an operator: "
+i_err:      .asciiz "\nInput Incorrect, bad operator!\n"
+again_str: .asciiz "Another calculation? (y/n)"
+rmndr:      .asciiz " r: "
+new_line:   .asciiz "\n"
+
+int1:   .word 1
+int2:   .word 1
+
+raw_in: .space 1
+op:     .space 1
+a_char: .space 1
+out:    .word 1
+remain: .word 1
+
+c_plus: .ascii "+"
+c_min: .asciiz "-"
+c_mult: .asciiz "*"
+
+.text
+.globl _main
+_main:
+        li $v0, 4               #Loads and prints the Welcome staement
+        la $a0, welc
+        syscall
+
+calc:
+        la $t6, remain          # Copy the address of a value in
+                                # memory specified by remain
+                                # into register $t6
+        move $t6, $zero
+        li $v0, 4
+        la $a0, p_int            # Load the integer request output to print
+        syscall
+
+        li $v0, 5                #input
+        syscall
+
+        la $s1, int1             #Loads addres of int1
+        move $s1, $v0
+        li $v0, 4
+        la $a0, p_int            #Print out another request for an integer
+        syscall
+
+        li $v0, 5                #input
+        syscall
+
+        la $s2, int2            #Takes address to register $s2
+        move $s2, $v0           #Moves input to register $s2
+        li $v0, 4
+        la $a0, p_op            #Operator request
+        syscall
+
+        li $v0, 8
+        la $a0, op              #operator inputed
+        syscall
+
+        #if equal to operator they put in the thats is what opperation otherwise wrong
+        lb $t0, op
+        li $t1, '+'
+        li $t2, '-'
+        li $t3, '*'
+        beq $t0, $t1, plus
+        beq $t0, $t2, minus
+        beq $t0, $t3, multi
+        # else
+        j error
+
+#Addition
+plus:   add $s0, $s1, $s2                 #add two intgeters into $s0 register
+        j print
+#Subtration
+minus: sub $s0, $s1, $s2
+        j print
+#Multiplication
+multi: slt $t1, $t2, $s2
+        beq $t1, $zero, print
+        add $s0, $s1, $s1
+        j multi
+
+
+
+#Prints out equation
+print:
+        li $v0, 1
+        la $a0, int1             #Prints out first integer
+        syscall
+
+        li $v0, 4
+        lb $a0, op               #Prints out operator
+        syscall
+
+        li $v0, 1
+        la $a0, int2             #Prints out second integer
+        syscall
+
+        li $v0, 4
+        la $a0, c_eq
+        syscall
+
+        li $v0, 1
+        la $a0, out
+        syscall
+
+        la $t0, remain
+        beq $t0, $zero, again         #another calculation? This goes to the place repeats
+        li $v0, 4
+        la $a0, rmndr
+        syscall
+
+        li $v0, 1
+        la $a0, remain
+        syscall
+#Re-use Calculator and to let user redo errors
+again:
+        li $v0, 4
+        la $a0, new_line
+        syscall
+
+        la $a0, again_str
+        syscall
+
+        li $v0, 8
+        la $a0, a_char
+        syscall
+
+        lb $t0, a_char
+        li $t1, 'n'
+        beq $t0, $t1, exit
+        #else loop
+        j calc
+#Error Message Printout and allow fix by going to again
+error: li $v0, 4
+        la $a0, i_err
+        syscall
+        j again
+#EXIT
+exit:   li $v0, 10
+        syscall

@@ -1,0 +1,79 @@
+.data
+#CPTS 260 HW 4 PROBLEM 2 , Jocelyn Strmec
+# Initialization of array
+array: .word 11, 12, -10, 13,  9, 12, 14, 15, -20, 0
+
+# intialization of phrases to console
+max:  .asciiz "The maximum value of the array is "
+sum:  .asciiz "\nThe summation of the array is "
+
+.text
+
+main:
+li  $a2, 10                  # a2 set the array length to 10
+la $t0, array               # put address of array into $t0
+
+# Print out phrase for FindMaxValue output
+li      $v0, 4                               # print_string $a0 = string
+la      $a0, max                             # Print to console
+syscall                                      # call operating system to perform print operation
+
+#Call FindMaxValue
+li   $t1, 0                             # t1 = 0: index i
+li   $a1, 0                             # a1 = 0 = maxVal
+j FindMaxValue                          # jump to FindMaxValue
+
+Exit:
+# Print maxVal
+li $v0, 1                       # load appropriate system call code into register $v0;
+move $a0, $a1                   # move integer to be printed into $a0:  $a0 = $t6
+syscall
+
+# Print out phrase for Summation output
+li      $v0, 4                      # print_string $a0 = string
+la      $a0, sum                    # Print to console
+syscall                             # call operating system to perform print operation
+
+# Call Summation
+li   $t1, 0                 # t1 restore back to 0
+li   $a1, 0                 # a1 = 0 = sumVal
+j Summation
+
+Exit2:
+# Print sumVal
+li $v0, 1                   # load appropriate system call code into register $v0;
+move $a0, $a1               # move integer to be printed into $a0:  $a0 = $a1
+syscall
+
+# Exit whole program
+li   $v0, 10                # system call code for exit = 10
+syscall                                 # call operating sys
+
+FindMaxValue:
+beq  $t1, $a2, Exit             # Exit loop if t1 = arrayLen
+la       $t0, tarray                  # put address of array into $t0
+sll      $t2, $t1, 2                    # t2 = t1 * 4
+add  $t0, $t0, $t2          # t0 address of array[t2]
+lw   $t3, 0($t0)            # t3 = array[t2]
+
+li   $t4, 1                     # t4 = 1
+slt  $t5, $a1, $t3                  # t5 = 1 if a1 < t3
+addi $t1, $t1, 1                # Increment t1 by 1: i += 1
+
+beq  $t4, $t5, SetValue         # jump if t4 = t5
+j FindMaxValue
+
+SetValue:
+move $a1, $t3                       # a1 = t3
+j FindMaxValue                          # jump back to FindMaxValue
+
+Summation:
+beq  $t1, $a2, Exit2        # Exit loop if t1 = arrayLen
+la   $t0, array          # Put address of array into $t0
+sll  $t2, $t1, 2            # t2 = t1 * 4
+add  $t0, $t0, $t2          # t0 address of array[t2]
+lw   $t3, 0($t0)            # t3 = array[t0]
+
+add  $a1, $t3, $a1                  # a1 = t3 + a1
+addi $t1, $t1, 1            # t1 += 1
+j Summation                                     # Jump back to Summation to loop
